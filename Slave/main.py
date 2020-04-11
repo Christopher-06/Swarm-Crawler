@@ -7,6 +7,8 @@ client.connect((socket.gethostname(),PORT))
 
 toSay = json.dumps({
             'cmd':'AnyWork'
+            #'cmd':'found_sites',
+            #'parm':['www.fdsgf.de','https://fsfgd.org']
         })
 
 #send

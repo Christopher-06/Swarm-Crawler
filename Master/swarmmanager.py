@@ -26,25 +26,50 @@ class handle:
         if obj['cmd'] == 'AnyWork':
             response = self.search_work()
 
+        if obj['cmd'] == 'found_sites':
+            response = self.found_sites(obj['parm'])
+
+        if obj['cmd'] == 'get_links_done':
+            response = self.get_links_done(obj['parm'][0])
+
         self.send_data(json.dumps(response))
         self.client.close()
 
     def search_work(self):
+        #find unsearched sites
         url = dbmanager.openSites_find_unworked()
+
         if url == None:
+             #research a site:
+            url = dbmanager.closedSites_get_random()
+        if url == None:
+           #no site is avaible to search/research          
             return {
                 'cmd':'nothing',
                 'parm':[]  }
-        dbmanager.openSites_update_state(str(url),1)
 
-        parm = []
-        parm.append(str(url))
+        if dbmanager.openSites_contains(str(url)) == False:
+            dbmanager.openSites_insert_new(str(url))            
+
+        dbmanager.closedSites_remove(str(url))
+        dbmanager.openSites_update_state(str(url),1)
         return {
-            'cmd':'ok',
-            'parm':parm
+            'cmd':'get_links',
+            'parm':[str(url)]
         }
 
+    def found_sites(self,sites):
+        for site in sites:
+            if dbmanager.openSites_contains(site) == False and dbmanager.closedSites_contains(site) == False:
+                dbmanager.openSites_insert_new(site)
 
+        return {'cmd':'ok','parm':[]}
+
+    def get_links_done(self,url):
+        dbmanager.openSites_remove_item(url)
+        dbmanager.closedSites_insert(url)
+
+        return {'cmd':'ok','parm':[]}
 
     def send_data(self,data : str):
         dataLenght = len(data)
@@ -54,7 +79,6 @@ class handle:
         self.client.recv(2)
 
         self.client.send(data.encode('utf-8'))
-
 
     def recv_data(self):
         recv = self.client.recv(100).decode('utf-8')
