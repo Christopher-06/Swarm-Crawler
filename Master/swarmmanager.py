@@ -103,7 +103,7 @@ def swarm_start():
 def swarm_run():       
     server.bind((socket.gethostname(),PORT))
     server.listen(5)
-    print("Listening...")
+    print("Listening at "+str(socket.gethostname())+":"+str(PORT)+"...")
 
     while True:
         (client,address) = server.accept()
