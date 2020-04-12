@@ -17,11 +17,11 @@ getWork = json.dumps({
             #'parm':['www.fdsgf.de','https://fsfgd.org']
         })
 
-def run():
+def run(MASTER_ADDRESS):
     while True:
         #prepare new iteration
         client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        client.connect((socket.gethostname(),PORT))        
+        client.connect((MASTER_ADDRESS,PORT))        
         dbmanager.closedSites_delete_all()
         dbmanager.openSites_delete_all()
 
@@ -44,7 +44,7 @@ def run():
 
         #say the site is finished        
         client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        client.connect((socket.gethostname(),PORT))                                 
+        client.connect((MASTER_ADDRESS,PORT))                                 
         talking.request(client,json.dumps({'cmd':'get_links_done','parm':[url]}))
         client.close()
 
@@ -64,27 +64,32 @@ def run():
                     dbmanager.syncSites_insert(crawler.extract_domain(url))
 
             if random.randint(0,5) == 3:
-                sync_sites()
+                sync_sites(MASTER_ADDRESS)
 
             time.sleep(1)
 
 
         #end     
-        print("Next iteration...")   
+        sync_sites(MASTER_ADDRESS)
         time.sleep(5)
+        print("Next iteration...")   
+        
 
-def sync_sites():
+def sync_sites(MASTER_ADDRESS):
     print("sync domains")
     domains = dbmanager.syncSites_get_all()
     client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-    client.connect((socket.gethostname(),PORT))                                 
+    client.connect((MASTER_ADDRESS,PORT))                                 
     talking.request(client,json.dumps({'cmd':'found_sites','parm':domains}))
     client.close()
     
 
 def main():
     dbmanager.init_db()
-    run_thread = Thread(target=run)
+
+    MASTER_ADDRESS = input("IP of master -->")
+
+    run_thread = Thread(target=run,args=(MASTER_ADDRESS,))
     run_thread.daemon = True
     run_thread.start()
 

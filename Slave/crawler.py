@@ -27,6 +27,8 @@ def get_all_links(url : str):
                 else:
                     site = domain + a
 
+                site = site.partition('?')[0]
+
                 if dbmanager.openSites_contains(site) == False and dbmanager.closedSites_contains(site) == False:
                     dbmanager.openSites_insert_new(site)   
             break          
