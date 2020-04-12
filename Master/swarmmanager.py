@@ -6,6 +6,7 @@ from threading import Thread
 
 PORT = 4455
 server = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+swarm_run_thread = None
 
 
 class handle:
@@ -22,6 +23,9 @@ class handle:
             'cmd':'unknown',
             'parm': []
         }
+
+        if obj['cmd'] == 'exit':
+            response = {'cmd':'ok','parm':[]}
 
         if obj['cmd'] == 'AnyWork':
             response = self.search_work()
@@ -62,10 +66,11 @@ class handle:
         for site in sites:
             if dbmanager.openSites_contains(site) == False and dbmanager.closedSites_contains(site) == False:
                 dbmanager.openSites_insert_new(site)
-
+                print(site)
         return {'cmd':'ok','parm':[]}
 
     def get_links_done(self,url):
+        print("Finished: " + url)
         dbmanager.openSites_remove_item(url)
         dbmanager.closedSites_insert(url)
 
@@ -89,6 +94,11 @@ class handle:
         buffer = self.client.recv(dataLenght)
         return buffer.decode('utf-8')
 
+def swarm_start():
+    swarm_run_thread = Thread(target=swarm_run)
+    swarm_run_thread.daemon = True  
+    swarm_run_thread.start()
+    time.sleep(1)
 
 def swarm_run():       
     server.bind((socket.gethostname(),PORT))
@@ -98,3 +108,8 @@ def swarm_run():
     while True:
         (client,address) = server.accept()
         h = handle(client)
+
+def swarm_stop():
+    print("Stopping swarm...")    
+    server.close()
+    print("Stopped swarm succesfully")
