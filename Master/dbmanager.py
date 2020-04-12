@@ -17,12 +17,12 @@ def init():
         cursor.execute('CREATE TABLE closedSites(url TEXT)')
         cursor.execute('CREATE TABLE openSites(url TEXT,state INT)')
 
-        cursor.execute("INSERT INTO openSites(url,state) VALUES(?,?)",('https://steemit.com',0,))
+        cursor.execute("INSERT INTO openSites(url,state) VALUES(?,?)",('https://steemit.com/',0,))
         conn.commit()
 
     #setting all openSites to 0 --> Otherwise it will not be searched after restart
     cursor.execute("UPDATE openSites SET state=0")
-    cursor.execute("INSERT INTO closedSites(url) VALUES(?)",('fggdg',))
+   # cursor.execute("INSERT INTO closedSites(url) VALUES(?)",('fggdg',))
     conn.commit()
     conn.close()
 
